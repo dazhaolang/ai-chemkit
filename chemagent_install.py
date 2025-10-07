@@ -90,7 +90,7 @@ def main():
     parser.add_argument(
         "command",
         nargs="?",
-        choices=["install", "update", "uninstall", "status", "examples"],
+        choices=["install", "update", "uninstall", "status", "examples", "mcp"],
         default="install",
         help="Command to execute (default: install)"
     )
@@ -103,6 +103,9 @@ def main():
         return
     elif args.command == "examples":
         install_examples()
+        return
+    elif args.command == "mcp":
+        install_mcp_servers()
         return
     elif args.command == "update":
         update_chemagent()
@@ -194,6 +197,26 @@ def show_status():
     
     print("\nRun 'chemagent install' to fix any issues.")
 
+
+def install_mcp_servers():
+    """Install MCP servers for chemistry tools"""
+    print("\n🔧 Installing MCP Servers...\n")
+    
+    import subprocess
+    import os
+    
+    # Make install script executable and run it
+    if os.path.exists("install_rdkit_mcp.sh"):
+        try:
+            subprocess.run(["chmod", "+x", "install_rdkit_mcp.sh"], check=True)
+            subprocess.run(["./install_rdkit_mcp.sh"], check=True)
+            print("✅ RDKit MCP server installed")
+        except subprocess.CalledProcessError:
+            print("⚠️  RDKit MCP installation failed")
+    else:
+        print("⚠️  RDKit MCP installer not found")
+    
+    print("\n✨ MCP servers installation complete!")
 
 def install_examples():
     """Install example files"""
