@@ -205,16 +205,58 @@ def install_mcp_servers():
     import subprocess
     import os
     
-    # Make install script executable and run it
-    if os.path.exists("install_rdkit_mcp.sh"):
+    # Install all MCP servers
+    if os.path.exists("install_all_mcp_servers.sh"):
         try:
-            subprocess.run(["chmod", "+x", "install_rdkit_mcp.sh"], check=True)
-            subprocess.run(["./install_rdkit_mcp.sh"], check=True)
-            print("✅ RDKit MCP server installed")
-        except subprocess.CalledProcessError:
-            print("⚠️  RDKit MCP installation failed")
+            subprocess.run(["chmod", "+x", "install_all_mcp_servers.sh"], check=True)
+            result = subprocess.run(["./install_all_mcp_servers.sh"], 
+                                  capture_output=True, text=True, check=False)
+            
+            if result.returncode == 0:
+                print("✅ All MCP servers installed successfully")
+                
+                # Try to start the servers
+                print("\n🚀 Starting MCP servers...")
+                mcp_manager = os.path.expanduser("~/.chemagent/mcp_servers/mcp_manager.py")
+                if os.path.exists(mcp_manager):
+                    subprocess.run([sys.executable, mcp_manager, "start-all"], 
+                                 capture_output=True, check=False)
+                    
+                    # Show status
+                    result = subprocess.run([sys.executable, mcp_manager, "status"],
+                                          capture_output=True, text=True, check=False)
+                    if result.stdout:
+                        print(result.stdout)
+            else:
+                print("⚠️  Some MCP servers may have failed to install")
+                if result.stderr:
+                    print(f"Error: {result.stderr}")
+                    
+        except subprocess.CalledProcessError as e:
+            print(f"⚠️  MCP installation error: {e}")
     else:
-        print("⚠️  RDKit MCP installer not found")
+        # Fallback to individual installers
+        print("Installing individual MCP servers...")
+        
+        # RDKit MCP
+        if os.path.exists("install_rdkit_mcp.sh"):
+            try:
+                subprocess.run(["chmod", "+x", "install_rdkit_mcp.sh"], check=True)
+                subprocess.run(["./install_rdkit_mcp.sh"], check=True)
+                print("✅ RDKit MCP server installed")
+            except:
+                print("⚠️  RDKit MCP installation failed")
+        
+        # Install our custom MCPs from source
+        for mcp_name in ["mcp_pubchem", "mcp_chembl", "mcp_openbabel"]:
+            mcp_dir = f"mcp_servers/{mcp_name}"
+            if os.path.exists(mcp_dir):
+                try:
+                    subprocess.run([sys.executable, "-m", "pip", "install", "-e", mcp_dir],
+                                 capture_output=True, check=False)
+                    print(f"✅ {mcp_name} installed from source")
+                except:
+                    print(f"⚠️  {mcp_name} installation failed")
     
     print("\n✨ MCP servers installation complete!")
 
