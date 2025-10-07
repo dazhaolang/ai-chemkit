@@ -5,8 +5,10 @@ Provides chemistry enhancements for Claude Code in Cursor IDE
 
 from typing import Dict, Any, List, Optional
 from pathlib import Path
+import subprocess
 import json
 import shutil
+import os
 from .base import BaseEnhancer
 
 
@@ -44,6 +46,84 @@ class ClaudeCodeEnhancer(BaseEnhancer):
             ]
         }
     
+
+    def _setup_mcp_servers(self):
+        """Install and configure MCP servers for Claude Desktop"""
+        print("🔧 Setting up MCP servers...")
+        
+        # First, run the MCP installation script
+        install_script = Path(__file__).parent.parent.parent / "install_all_mcp_servers.sh"
+        if install_script.exists():
+            try:
+                print("  Installing MCP servers...")
+                result = subprocess.run(
+                    ["bash", str(install_script)], 
+                    capture_output=True, 
+                    text=True,
+                    check=False
+                )
+                if result.returncode == 0:
+                    print("  ✅ MCP servers installed")
+                else:
+                    print(f"  ⚠️  MCP installation had issues: {result.stderr}")
+            except Exception as e:
+                print(f"  ⚠️  Could not run MCP installer: {e}")
+        
+        # Configure Claude Desktop
+        config_paths = [
+            Path.home() / "Library" / "Application Support" / "Claude" / "claude_desktop_config.json",  # macOS
+            Path.home() / ".config" / "Claude" / "claude_desktop_config.json",  # Linux
+            Path(os.environ.get("APPDATA", "")) / "Claude" / "claude_desktop_config.json" if os.name == "nt" else None  # Windows
+        ]
+        
+        config_file = None
+        for path in config_paths:
+            if path and path.parent.exists():
+                config_file = path
+                path.parent.mkdir(parents=True, exist_ok=True)
+                break
+        
+        if not config_file:
+            # Fallback to Cursor config
+            config_file = Path.home() / ".cursor" / "mcp_config.json"
+            config_file.parent.mkdir(parents=True, exist_ok=True)
+        
+        # Load or create config
+        if config_file.exists():
+            with open(config_file, "r") as f:
+                config = json.load(f)
+        else:
+            config = {}
+        
+        # Add MCP servers
+        if "mcpServers" not in config:
+            config["mcpServers"] = {}
+        
+        config["mcpServers"].update({
+            "rdkit": {
+                "command": "python",
+                "args": ["-m", "mcp_rdkit"]
+            },
+            "pubchem": {
+                "command": "python",
+                "args": ["-m", "mcp_pubchem_server"]
+            },
+            "chembl": {
+                "command": "python",
+                "args": ["-m", "mcp_chembl_server"]
+            },
+            "openbabel": {
+                "command": "python",
+                "args": ["-m", "mcp_openbabel_server"]
+            }
+        })
+        
+        # Save config
+        with open(config_file, "w") as f:
+            json.dump(config, f, indent=2)
+        
+        print(f"  ✅ MCP configuration saved to {config_file}")
+
     def install(self) -> bool:
         """Install ChemAgent for Claude Code"""
         print("🚀 Installing ChemAgent for Claude Code...")
@@ -57,10 +137,13 @@ class ClaudeCodeEnhancer(BaseEnhancer):
         # 3. Setup sub-agents
         self._setup_sub_agents()
         
-        # 4. Configure MCP if available
+        # 4. Install and configure MCP servers
+        self._setup_mcp_servers()
+        
+        # 5. Configure MCP if available (legacy)
         self._configure_mcp()
         
-        # 5. Create workspace config
+        # 6. Create workspace config
         self._create_workspace_config()
         
         print("✅ ChemAgent for Claude Code installed successfully!")
@@ -148,6 +231,83 @@ This project uses ChemAgent for chemistry-specific AI assistance.
                 sub_agents.append(role_file.stem)
         
         print(f"✅ Found {len(sub_agents)} chemistry roles: {', '.join(sub_agents)}")
+    
+    def _setup_mcp_servers(self):
+        """Install and configure MCP servers for Claude Desktop"""
+        print("🔧 Setting up MCP servers...")
+        
+        # First, run the MCP installation script
+        install_script = Path(__file__).parent.parent.parent / "install_all_mcp_servers.sh"
+        if install_script.exists():
+            try:
+                print("  Installing MCP servers...")
+                result = subprocess.run(
+                    ["bash", str(install_script)], 
+                    capture_output=True, 
+                    text=True,
+                    check=False
+                )
+                if result.returncode == 0:
+                    print("  ✅ MCP servers installed")
+                else:
+                    print(f"  ⚠️  MCP installation had issues")
+            except Exception as e:
+                print(f"  ⚠️  Could not run MCP installer: {e}")
+        
+        # Configure Claude Desktop
+        config_paths = [
+            Path.home() / "Library" / "Application Support" / "Claude" / "claude_desktop_config.json",  # macOS
+            Path.home() / ".config" / "Claude" / "claude_desktop_config.json",  # Linux
+            Path(os.environ.get("APPDATA", "")) / "Claude" / "claude_desktop_config.json" if os.name == "nt" else None  # Windows
+        ]
+        
+        config_file = None
+        for path in config_paths:
+            if path and path.parent.exists():
+                config_file = path
+                path.parent.mkdir(parents=True, exist_ok=True)
+                break
+        
+        if not config_file:
+            # Fallback to Cursor config
+            config_file = Path.home() / ".cursor" / "mcp_config.json"
+            config_file.parent.mkdir(parents=True, exist_ok=True)
+        
+        # Load or create config
+        if config_file.exists():
+            with open(config_file, "r") as f:
+                config = json.load(f)
+        else:
+            config = {}
+        
+        # Add MCP servers
+        if "mcpServers" not in config:
+            config["mcpServers"] = {}
+        
+        config["mcpServers"].update({
+            "rdkit": {
+                "command": "python",
+                "args": ["-m", "mcp_rdkit"]
+            },
+            "pubchem": {
+                "command": "python",
+                "args": ["-m", "mcp_pubchem_server"]
+            },
+            "chembl": {
+                "command": "python",
+                "args": ["-m", "mcp_chembl_server"]
+            },
+            "openbabel": {
+                "command": "python",
+                "args": ["-m", "mcp_openbabel_server"]
+            }
+        })
+        
+        # Save config
+        with open(config_file, "w") as f:
+            json.dump(config, f, indent=2)
+        
+        print(f"  ✅ MCP configuration saved to {config_file}")
     
     def _configure_mcp(self):
         """Configure MCP integration"""

@@ -254,3 +254,39 @@ Stay updated with:
 - Regulatory changes
 
 Remember: You are augmented with chemistry expertise. Be precise with chemical information, use IUPAC nomenclature when appropriate, and always consider safety and feasibility in your recommendations.
+
+
+## Available MCP Servers
+
+ChemAgent provides MCP servers for advanced chemistry operations:
+
+1. **RDKit MCP** (port 8766)
+   - Molecular analysis and descriptors
+   - Fingerprint generation
+   - 3D conformer generation
+
+2. **PubChem MCP** (port 8767)
+   - Compound search by name/SMILES/InChI
+   - Property retrieval
+   - Synonym lookup
+
+3. **ChEMBL MCP** (port 8768)
+   - Bioactivity data
+   - Drug and target information
+   - Clinical trial data
+
+4. **OpenBabel MCP** (port 8769)
+   - Format conversion
+   - 3D structure generation
+   - Geometry optimization
+
+To start MCP servers:
+```bash
+mcp start-all
+```
+
+To use in commands:
+```bash
+# Example: Search PubChem
+curl -X POST http://localhost:8767 -d '{"method":"search_compound","params":{"query":"aspirin"}}'
+```
