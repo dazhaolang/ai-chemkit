@@ -35,17 +35,26 @@ ChemAgent 是一个专为 **Claude Code (Cursor)** 和 **Gemini CLI** 设计的�
 
 #### 一键安装（最简单）
 ```bash
-curl -fsSL https://raw.githubusercontent.com/yourusername/chemagent/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/dazhaolang/ai-chemkit/main/install.sh | bash
 ```
 
 #### 或者手动安装
 ```bash
 # 克隆仓库
-git clone https://github.com/yourusername/chemagent.git
-cd chemagent
+git clone https://github.com/dazhaolang/ai-chemkit.git
+cd ai-chemkit
 
 # 运行交互式安装器
 python chemagent_install.py
+```
+
+#### 安装RDKit MCP服务器（官方支持）
+```bash
+# 安装官方的mcp-rdkit包
+python chemagent_install.py mcp
+
+# 或单独安装
+./install_rdkit_mcp.sh
 ```
 
 ### 📦 安装模式

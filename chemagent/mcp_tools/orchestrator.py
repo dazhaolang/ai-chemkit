@@ -22,10 +22,19 @@ class MCPOrchestrator:
     def __init__(self):
         # Registry of available official MCP servers
         self.official_mcps = {
-            # RDKit official MCP (if available)
+            # RDKit official MCP - NOW AVAILABLE via mcp-rdkit package
             "rdkit": {
-                "endpoint": "mcp://rdkit-official/",
-                "capabilities": ["molecular_analysis", "descriptor_calculation", "conformer_generation"]
+                "package": "mcp-rdkit",
+                "endpoint": "http://localhost:8766/mcp",
+                "capabilities": [
+                    "molecular_analysis", 
+                    "descriptor_calculation", 
+                    "conformer_generation",
+                    "fingerprint_generation",
+                    "similarity_search",
+                    "visualization"
+                ],
+                "status": "available"
             },
             # PubChem official MCP
             "pubchem": {
